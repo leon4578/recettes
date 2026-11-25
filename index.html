@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mon livre de recettes</title>
+<style>
+:root{--bg:#fbf5ec;--card:#fff;--ink:#3b2a20;--muted:#8a7565;--accent:#d9663b;--line:#ecdfce;--sh:0 2px 10px rgba(80,50,20,.12);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1e1814;--card:#2a221c;--ink:#f3e8dc;--muted:#b3a08f;--accent:#ee8458;--line:#3d3229;--sh:0 2px 10px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{--bg:#1e1814;--card:#2a221c;--ink:#f3e8dc;--muted:#b3a08f;--accent:#ee8458;--line:#3d3229;--sh:0 2px 10px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif;min-height:100vh}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 110px}
+h1{font-size:30px;margin:6px 0 4px;text-align:center}
+.sub{text-align:center;color:var(--muted);margin:0 0 16px;font-style:italic}
+input,textarea,button{font:inherit;color:inherit}
+.search{width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+@media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--card);border-radius:14px;overflow:hidden;box-shadow:var(--sh);cursor:pointer;border:0;padding:0;text-align:left;display:block;width:100%}
+.card .ph{aspect-ratio:1/1;background:var(--line) center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:40px}
+.card .t{padding:10px 12px;font-weight:bold;font-size:15px;line-height:1.25}
+.card .m{padding:0 12px 10px;color:var(--muted);font-size:13px}
+.empty{text-align:center;color:var(--muted);padding:50px 10px;line-height:1.6}
+.fab{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));width:62px;height:62px;border-radius:50%;border:0;background:var(--accent);color:#fff;font-size:36px;line-height:1;box-shadow:0 4px 14px rgba(0,0,0,.3);cursor:pointer}
+.view{position:fixed;inset:0;background:var(--bg);overflow-y:auto;z-index:20;padding-top:env(safe-area-inset-top,0px)}
+.view .in{max-width:760px;margin:0 auto;padding:16px 16px 60px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+.btn{border:0;border-radius:10px;padding:10px 16px;background:var(--card);box-shadow:var(--sh);cursor:pointer}
+.btn.p{background:var(--accent);color:#fff}
+.btn.d{color:#c0392b}
+label{display:block;font-weight:bold;margin:16px 0 6px}
+.f{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--card)}
+textarea.f{min-height:130px;resize:vertical}
+.row{display:flex;gap:10px}.row>div{flex:1}
+.pick{width:100%;aspect-ratio:16/10;border:2px dashed var(--line);border-radius:14px;background:var(--card) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;text-align:center}
+.hero{width:100%;aspect-ratio:16/10;border-radius:16px;background:var(--line) center/cover no-repeat;box-shadow:var(--sh)}
+.rt{font-size:28px;margin:14px 0 4px}
+.meta{color:var(--muted);margin-bottom:6px}
+.view h3{margin:20px 0 6px;color:var(--accent)}
+.view ul{padding-left:20px;margin:0}.view li{margin:4px 0}
+.txt{white-space:pre-wrap;line-height:1.55}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📖 Mon livre de recettes</h1>
+  <p class="sub" id="count"></p>
+  <input class="search" id="q" type="search" placeholder="Rechercher une recette…">
+  <div class="grid" id="grid"></div>
+  <div class="empty hide" id="empty">Ton livre est encore vide.<br>Appuie sur le <b>+</b> pour ajouter ta première recette ✨</div>
+</div>
+<button class="fab" id="add" aria-label="Ajouter une recette">+</button>
+
+<div class="view hide" id="detail"><div class="in" id="dIn"></div></div>
+
+<div class="view hide" id="editor"><div class="in">
+  <div class="top"><button class="btn" id="cancel">← Annuler</button><button class="btn p" id="save">Enregistrer</button></div>
+  <input type="file" id="file" accept="image/*" class="hide">
+  <div class="pick" id="pick">📷 Ajouter une photo</div>
+  <label for="title">Nom de la recette</label>
+  <input class="f" id="title" placeholder="Ex. Gâteau au chocolat de mamie">
+  <div class="row">
+    <div><label for="time">Temps</label><input class="f" id="time" placeholder="45 min"></div>
+    <div><label for="serv">Personnes</label><input class="f" id="serv" placeholder="4"></div>
+  </div>
+  <label for="ing">Ingrédients (un par ligne)</label>
+  <textarea class="f" id="ing" placeholder="200 g de farine&#10;3 œufs&#10;100 g de sucre"></textarea>
+  <label for="steps">Préparation</label>
+  <textarea class="f" id="steps" placeholder="Écris ici les étapes de ta recette…"></textarea>
+</div></div>
+
+<script>
+(function(){
+var KEY='livre-recettes-v1',recipes=[],cur=null,photo='';
+var $=function(i){return document.getElementById(i)};
+function load(){try{var s=localStorage.getItem(KEY);recipes=s?JSON.parse(s):[]}catch(e){recipes=[]}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(recipes));return true}catch(e){alert('Impossible d’enregistrer (mémoire pleine ?). Essaie une photo plus petite.');return false}}
+function esc(s){return String(s||'').replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function render(){
+  var t=$('q').value.toLowerCase().trim();
+  var list=recipes.filter(function(r){return !t||(r.title+' '+r.ing).toLowerCase().indexOf(t)>-1});
+  $('count').textContent=recipes.length?recipes.length+(recipes.length>1?' recettes':' recette'):'';
+  $('empty').classList.toggle('hide',recipes.length>0);
+  $('grid').innerHTML=list.map(function(r){
+    return '<button class="card" data-id="'+r.id+'"><div class="ph" '+(r.photo?'style="background-image:url('+r.photo+')"':'')+'>'+(r.photo?'':'🍽️')+'</div><div class="t">'+esc(r.title)+'</div>'+(r.time?'<div class="m">⏱ '+esc(r.time)+'</div>':'')+'</button>'}).join('');
+}
+function openDetail(id){
+  var r=recipes.filter(function(x){return x.id===id})[0];if(!r)return;cur=r;
+  var ings=(r.ing||'').split('\n').filter(function(l){return l.trim()});
+  $('dIn').innerHTML='<div class="top"><button class="btn" id="back">← Retour</button><span><button class="btn" id="edit">✏️ Modifier</button> <button class="btn d" id="del">🗑</button></span></div>'
+   +(r.photo?'<div class="hero" style="background-image:url('+r.photo+')"></div>':'')
+   +'<div class="rt">'+esc(r.title)+'</div><div class="meta">'+(r.time?'⏱ '+esc(r.time):'')+(r.time&&r.serv?' · ':'')+(r.serv?'👥 '+esc(r.serv)+' pers.':'')+'</div>'
+   +(ings.length?'<h3>Ingrédients</h3><ul>'+ings.map(function(l){return '<li>'+esc(l)+'</li>'}).join('')+'</ul>':'')
+   +(r.steps?'<h3>Préparation</h3><div class="txt">'+esc(r.steps)+'</div>':'');
+  $('detail').classList.remove('hide');$('detail').scrollTop=0;
+  $('back').onclick=function(){$('detail').classList.add('hide')};
+  $('edit').onclick=function(){openEditor(r)};
+  $('del').onclick=function(){if(confirm('Supprimer cette recette ?')){recipes=recipes.filter(function(x){return x.id!==r.id});persist();$('detail').classList.add('hide');render()}};
+}
+function setPick(){var p=$('pick');p.style.backgroundImage=photo?'url('+photo+')':'';p.textContent=photo?'':'📷 Ajouter une photo'}
+function openEditor(r){
+  cur=r||null;photo=r?r.photo||'':'';
+  $('title').value=r?r.title:'';$('time').value=r?r.time||'':'';$('serv').value=r?r.serv||'':'';
+  $('ing').value=r?r.ing||'':'';$('steps').value=r?r.steps||'':'';
+  setPick();$('editor').classList.remove('hide');$('editor').scrollTop=0;
+}
+$('add').onclick=function(){openEditor(null)};
+$('cancel').onclick=function(){$('editor').classList.add('hide')};
+$('pick').onclick=function(){$('file').click()};
+$('file').onchange=function(e){
+  var f=e.target.files[0];if(!f)return;
+  var fr=new FileReader();
+  fr.onload=function(){var im=new Image();im.onload=function(){
+    var m=900,s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');
+    c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    photo=c.toDataURL('image/jpeg',.72);setPick()};im.src=fr.result};
+  fr.readAsDataURL(f);e.target.value='';
+};
+$('save').onclick=function(){
+  var title=$('title').value.trim();
+  if(!title){alert('Donne un nom à ta recette 🙂');return}
+  var data={title:title,time:$('time').value.trim(),serv:$('serv').value.trim(),ing:$('ing').value,steps:$('steps').value,photo:photo};
+  var saved;
+  if(cur){Object.assign(cur,data);saved=cur}else{saved=Object.assign({id:'r'+Date.now()},data);recipes.unshift(saved)}
+  if(!persist())return;
+  $('editor').classList.add('hide');render();openDetail(saved.id);
+};
+$('grid').onclick=function(e){var b=e.target.closest('.card');if(b)openDetail(b.getAttribute('data-id'))};
+$('q').oninput=render;
+load();render();
+})();
+</script>
+</body>
+</html>
